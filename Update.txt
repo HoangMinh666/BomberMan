@@ -1,195 +1,273 @@
-UI.H
+START.H
 #pragma once
-#include <iostream>
-#include <SFML/Graphics.hpp>
-#include "Until.h"
-#include <conio.h> 
-#include <time.h>
 
-#pragma comment (lib, "sfml-graphics-d.lib")
-#pragma comment (lib, "sfml-audio-d.lib")
-#pragma comment (lib, "sfml-network-d.lib")
-#pragma comment (lib, "sfml-window-d.lib")
-#pragma comment (lib, "sfml-system-d.lib")
+#include<SFML/Graphics.hpp>
+#include<SFML/Audio.hpp>
 
-using namespace std;
-using namespace sf;
-
-class UI
+class Start
 {
-public:
-	UI();
-	~UI();
-
-	sf::RenderWindow *window;
-	Texture *t1, *t2, *t3, *t4, *t5;
-	Sprite *spriteBackground;
-	Sprite *spriteBomberMan;
-	Sprite *spriteWall;
-	Sprite *spriteBrick;
-	Sprite *spriteMonster;
-	char    StartUI();
 private:
+	sf::Texture textureBackground;
+	sf::Sprite spriteBackground;
 
+	sf::Texture textureLogo;
+	sf::Sprite spriteLogo;
+
+public:
+	bool _1player;
+	bool _2player;
+	//bool showInformation;
+	//bool showStandings;
+
+private:
+	//Text and font
+	sf::Font font;
+	float sizeText;
+	sf::Text _1playerText;
+	sf::Text _2playerText;
+	//sf::Text standingsText;
+	//sf::Text quitText;
+
+	//Mouse
+	sf::Vector2i mousePosWindow;
+	sf::Vector2f mousePosView;
+
+	void initText();
+	void initText(sf::Text& text);
+public:
+	Start();
+	virtual ~Start();
+	
+	void run(sf::RenderWindow* window);
+
+	 bool Is1Player();
+	 bool Is2Player();
+	 //bool isShowInfo() const;
+
+	const sf::FloatRect Get1playerBounds() const;
+	const sf::FloatRect Get2playerBounds() const;
+//	const sf::FloatRect getQuitBounds() const;
+
+	void updateTextIfMouseIn(sf::Text& text);
+	void updateMouse(sf::RenderWindow* window);
+//	void updateGUI(sf::RenderWindow* window);
+//	void update(sf::RenderWindow* window);
+//	void renderGUI(sf::RenderWindow* window);
+//	void render(sf::RenderWindow* window);
+
+//	void restartGame();
 };
 
 
-UI.CPP
-#include "UI.h"
-#include <SFML/Graphics.hpp>
-#pragma comment (lib, "sfml-graphics-d.lib")
-#pragma comment (lib, "sfml-audio-d.lib")
-#pragma comment (lib, "sfml-network-d.lib")
-#pragma comment (lib, "sfml-window-d.lib")
-#pragma comment (lib, "sfml-system-d.lib")
-using namespace sf;
-UI::UI()
+START.CPP
+#include "Start.h"
+
+void Start::initText()
 {
-	window = new sf::RenderWindow(sf::VideoMode(MAX_WIDTH * sizeCell, MAX_HEIGHT * sizeCell), "SFML example");
+	this->sizeText = 50.f;
+
+	if(!this->font.loadFromFile("Fonts/font1.ttf"))
+		printf("NOT LOAD FONT START\n");
+
+	this->startText.setFont(this->font);
+	this->startText.setCharacterSize(this->sizeText);
+	this->startText.setFillColor(sf::Color::White);
+	this->startText.setString("START");
+
+	this->informationText.setFont(this->font);
+	this->informationText.setCharacterSize(this->sizeText);
+	this->informationText.setFillColor(sf::Color::White);
+	this->informationText.setString("INFORMATION");
+
+	this->quitText.setFont(this->font);
+	this->quitText.setCharacterSize(this->sizeText);
+	this->quitText.setFillColor(sf::Color::White);
+	this->quitText.setString("QUIT");
+
+	this->standingsText.setFont(this->font);
+	this->standingsText.setCharacterSize(this->sizeText);
+	this->standingsText.setFillColor(sf::Color::White);
+	this->standingsText.setString("STANDINGS");
+
+	//Position text
+	this->startText.setPosition(1600.f / 2 - this->startText.getCharacterSize() * 2.f, 500.f);
+	this->informationText.setPosition(1600.f / 2 - this->informationText.getCharacterSize() * 4.f, 600.f);
+	this->standingsText.setPosition(1600.f / 2 - this->startText.getCharacterSize() * 3.3f, 700.f);
+	this->quitText.setPosition(1600.f / 2 - this->startText.getCharacterSize() * 1.55f, 800.f);
+}
+
+Start::Start()
+{	
+	//Background
+	this->textureBackground.loadFromFile("Textures/background_menu.png");
+	this->spriteBackground.setTexture(this->textureBackground);
+	this->spriteBackground.setScale(16 / 12.f, 16 / 12.f);
+
+	//Logo
+	this->textureLogo.loadFromFile("Textures/logo.png");
+	this->spriteLogo.setTexture(this->textureLogo);
+	this->spriteLogo.scale(1500 / 1084.f, 1.f);
+	this->spriteLogo.setPosition(50.f, 50.f);
+
+	//Variables
+	this->menuClose = false;
+	this->gameStart = false;
+	this->showInformation = false;
+	this->showStandings = false;
+
+	this->backgroundMusic.openFromFile("Sounds/start_wav.wav");
+	this->backgroundMusic.setLoop(true);
+	this->backgroundMusic.setPlayingOffset(sf::seconds(0));
+	this->backgroundMusic.play();
+
+	this->singleClick.openFromFile("Sounds/single_click.wav");
+	this->click.openFromFile("Sounds/click.wav");
+
+	this->initText();
+}
+
+Menu::~Menu()
+{
+
+}
+
+void Menu::run(sf::RenderWindow* window)
+{
+	if (this->isMenuClose() == false) 
+	{
+		this->update(window);
+		this->render(window);
+	}
+	
+}
+
+const bool Menu::isMenuClose() const
+{
+	return this->menuClose;
+}
+
+const bool Menu::isGameStart() const
+{
+	return this->gameStart;
+}
+
+const bool Menu::isShowInfo() const
+{
+	return this->showInformation;
+}
+
+const sf::FloatRect Menu::getStartBounds() const
+{
+	return this->startText.getGlobalBounds();
+}
+
+const sf::FloatRect Menu::getInformationBounds() const
+{
+	return this->informationText.getGlobalBounds();
+}
+
+const sf::FloatRect Menu::getQuitBounds() const
+{
+	return this->quitText.getGlobalBounds();
+}
+
+
+
+
+void Menu::updateMouse(sf::RenderWindow* window)
+{
+	this->mousePosWindow = sf::Mouse::getPosition(*window);
+	this->mousePosView = window->mapPixelToCoords(this->mousePosWindow);
+}
+
+void Menu::updateTextIfMouseIn(sf::Text& text)
+{
+	if (text.getGlobalBounds().contains(this->mousePosView))
+	{
+		if( text.getFillColor() != sf::Color::Red)
+		{
+			this->singleClick.setPlayingOffset(sf::seconds(0.11));
+			this->singleClick.play();
+
+			text.setFillColor(sf::Color::Red);
+		}
+
+	}
+	else
+		text.setFillColor(sf::Color::White);
+}
+
+
+void Menu::updateGUI(sf::RenderWindow* window)
+{
+	//set color if mouse in text
+	this->updateTextIfMouseIn(this->startText);
+	this->updateTextIfMouseIn(this->informationText);
+	this->updateTextIfMouseIn(this->standingsText);
+	this->updateTextIfMouseIn(this->quitText);
+
+	//mouse click text
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && this->startText.getGlobalBounds().contains(this->mousePosView))
+	{
+		this->gameStart = true;
+		this->menuClose = true;
+		this->backgroundMusic.pause();
+		this->click.setPlayingOffset(sf::seconds(0.2));
+		this->click.play();
+	}
+
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && this->informationText.getGlobalBounds().contains(this->mousePosView))
+	{
+		this->click.setPlayingOffset(sf::seconds(0.2));
+		this->click.play();
+
+		this->showInformation = true;
+		this->menuClose = true;
+	}
+
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && this->standingsText.getGlobalBounds().contains(this->mousePosView))
+	{
+		this->click.setPlayingOffset(sf::seconds(0.2));
+		this->click.play();
+
+		this->showStandings = true;
+		this->menuClose = true;
+	}
+
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && this->quitText.getGlobalBounds().contains(this->mousePosView))
+	{
+		this->click.setPlayingOffset(sf::seconds(0.2));
+		this->click.play();
+		window->close();
+	}
+}
+
+void Menu::update(sf::RenderWindow* window)
+{
+	this->updateMouse(window);
+	this->updateGUI(window);
+}
+
+void Menu::renderGUI(sf::RenderWindow* window)
+{
+	window->draw(this->startText);
+	window->draw(this->informationText);
+	window->draw(this->quitText);
+	window->draw(this->standingsText);
+}
+
+
+void Menu::render(sf::RenderWindow* window)
+{
 	window->clear();
 
-	t1 = new sf::Texture();
-	t2 = new sf::Texture();
-	t3 = new sf::Texture();
-	t4 = new sf::Texture();
-	t5 = new sf::Texture();
-	
-	
-	t1->loadFromFile("D:/iimei/images.png");
-	t2->loadFromFile("D:/iimei/wall2.png");
-	t3->loadFromFile("D:/iimei/Brick.png");
-	t4->loadFromFile("D:/iimei/Bomberman.png");
-	t5->loadFromFile("D:/iimei/monster.png");
+	window->draw(this->spriteBackground);
+	window->draw(this->spriteLogo);
+	this->renderGUI(window);
 
-
-	spriteBackground = new Sprite(*t1);
-	spriteWall = new Sprite(*t2);
-	spriteBrick = new Sprite(*t3);
-	spriteBomberMan = new Sprite(*t4);
-	spriteMonster = new Sprite (*t5);
+	window->display();
 }
-UI ::~UI() {}
 
-
-UPDATE BOMBERMAN.CPP
-void BomberMan::DisplayBomberManUI(sf::Sprite &spBomberMan, sf::RenderWindow &window)
+void Menu::restartGame()
 {
-	if ( _bomberMan.GetC() == 'X') 
-	{
-		spBomberMan.setPosition(_bomberMan.GetX()*sizeCell, _bomberMan.GetY()*sizeCell);
-		window.draw(spBomberMan);
-	}
-
-}
-
-UPDATE GAME.CPP
-void GameBomberMan::OnePlayerMode(UI *ui)
-{
-	system("CLS");
-	bomb1 = new Bomb;
-	player1 = new BomberMan(1, 1, 'X');
-
-	bool finish = false;
-
-	while (ui->window->isOpen()) 
-	{
-		Event e;
-		
-		while (ui->window->pollEvent(e))
-		{
-			if (e.type == Event::Closed)
-				ui->window->close();
-		}
-		map->DisplayMapUI(*ui->spriteBackground, *ui->spriteWall, *ui->spriteBrick, *ui->window); 
-		player1->DisplayBomberManUI(*ui->spriteBomberMan, *ui->window);
-	//	ui->window->display();
-
-		GoToXY(0, MAX_HEIGHT);  cout << "Remaining lives: " << player1->_liveLeft;
-
-		while (1)
-		{
-			if (_kbhit())
-			{
-				char ch = _getch();
-				if (ch == 72 || ch == 80 || ch == 75 || ch == 77) player1->Move(map, ch, bomb1);
-				else if (ch == ' ') player1->SetBomb(bomb1, map);
-				else if (ch == 'p') _getch();
-			}
-
-			
-			player1->GetPortal(map, bomb1, portal);
-			if (!bomb1->_isExplosion)
-			{
-				if (bomb1->BombExplosion(map, portal, brick, &player1->_bomberMan, monster))
-					player1->ResetBomberMan(bomb1);
-			}
-			if (player1->CollideMonster(monster))
-			{
-				player1->ResetBomberMan(bomb1); GoToXY(17, MAX_HEIGHT);
-				cout << player1->_liveLeft;
-			}
-
-			monster->Move(map);
-			if (brick->IsDestroyed() || !player1->_liveLeft || monster->IsDeadAll())
-			{
-				finish = true;
-				break;
-			}
-
-			//update UI
-			ui->window->clear();
-			map->DisplayMapUI(*ui->spriteBackground, *ui->spriteWall, *ui->spriteBrick, *ui->window); 
-			monster->DisplayMonsterUI(*ui->spriteMonster, *ui->window);
-			player1->DisplayBomberManUI(*ui->spriteBomberMan, *ui->window);
-			ui->window->display();
-			//Sleep(100);
-		}
-			
-	}
-	system("CLS");
-	if (brick->IsDestroyed() || monster->IsDeadAll()) cout << "CHUC MUNG BAN DA CHIEN THANG";
-	else if (player1->_liveLeft == 0) cout << "GAME OVER";
-}
-
-
-UPDATE MAP2D.CPP
-void Map2D::DisplayMapUI(sf::Sprite &spBackground, sf::Sprite &spWall, sf::Sprite &spBrick, sf::RenderWindow &window) {
-	for (int y = 0; y < MAX_HEIGHT; y++)
-		for (int x = 0; x < MAX_WIDTH; x++)
-		{
-			if (_map[y][x].GetC() == '#'||_map[y][x].GetC() == 'W')
-			{
-				spWall.setPosition(x*sizeCell, y*sizeCell);
-				window.draw(spWall);
-			}
-			
-			else if (_map[y][x].GetC() == 'B')
-			{
-				spBrick.setPosition(x*sizeCell, y*sizeCell);
-				window.draw(spBrick);
-			}
-			else {
-				spBackground.setPosition(x*sizeCell, y*sizeCell);
-				window.draw(spBackground);
-			}
-		}
-}
-
-
-UPDATE MONSTER.CPP
-void Monster::DisplayMonsterUI(sf::Sprite &spMonster, sf::RenderWindow &window)
-{
-	for (int i = 0; i < MAX_MONSTER; ++i)
-	{
-		if (!_checkDead[i])
-		{
-			if ( _monster[i].GetC() == '$') 
-			{
-				//window.clear();
-				//_monster[i-1].Clear();
-				spMonster.setPosition(_monster[i].GetX()*sizeCell, _monster[i].GetY()*sizeCell);
-				window.draw(spMonster);
-			}
-		}
-	}
 }
